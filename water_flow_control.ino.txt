@@ -1,0 +1,86 @@
+#include <LiquidCrystal.h>; // include the library code for lcd LiquidCrystal lcd(12, 11, 5, 4, 3, 2); 
+#define echopin 9 // echo pin 
+#define trigpin 8 // Trigger pin 
+#define flowpin 6// flow rate input 
+ 
+int duration, distance, flowrate; 
+int temp=0,a=0, newvar=0; 
+
+void setup() {   
+lcd.begin(16,2);   
+Serial.begin (9600);   
+pinMode (trigpin, OUTPUT);   
+pinMode (7, OUTPUT);   
+pinMode (echopin, INPUT );   
+//pinMode (13,OUTPUT);   
+pinMode(6,INPUT);  
+}
+
+
+void loop(){     {       
+digitalWrite(trigpin,LOW);
+delayMicroseconds(2);               
+digitalWrite(trigpin,HIGH);       
+delayMicroseconds(10);               
+duration=pulseIn (echopin,HIGH);       
+flowrate = pulseIn(flowpin,HIGH);       
+distance= duration/60;              
+delay (50);       
+Serial.println(flowrate);       
+lcd.clear();       
+lcd.setCursor(0,0);       
+lcd.print("water level :");       
+lcd.print(distance);       
+delay(100);     
+}
+
+// assuming height of tank is 20units   
+// min thershold is 17 units when it will trigger to start motor   
+// 5 units be the threshold on which motor stops 
+
+if(newvar == 1){       
+if(distance < 5)         
+	newvar = 0;       
+else{
+ // var a used to decide for how much time after which we need to check for distance in case tank is empty and flow rate is zero. 
+ 
+//For e.g:             
+// one can consider a case if tank is empty but when previously we checked for water flow then it was zero so we turned off motor          // now we decide with help of var a after how much time do we need to check for flow again so that we can control motor accordingly
+
+if(flowrate == 0 && distance >5 && a>25 ){               
+temp = 1;                
+a=0;               
+digitalWrite (7,LOW);                
+delay(2000);             
+}             
+else{               
+temp = 0;             
+}
+
+// this part is for stopping motor             
+if ((distance<=5 || flowrate == 0 )&& temp == 0){               digitalWrite (7,HIGH);
+// connect to relay(motor)                              
+lcd.setCursor(0,1);               
+lcd.print("Tank is full ");               
+delay(100);               
+} 
+
+ else{               
+digitalWrite (7,LOW); // connect to relay(motor)                        lcd.setCursor(0,1);               
+lcd.print("Motor running");               
+delay(100);               
+temp = 0;               
+}                      
+a++;             
+}            
+} 
+ 
+else{       
+if(distance > 17){         
+newvar = 1;       
+}       
+else{         
+newvar = 0;       
+}     
+} 
+} 
